@@ -1,6 +1,6 @@
 # `baton-verkada` [![Go Reference](https://pkg.go.dev/badge/github.com/conductorone/baton-verkada.svg)](https://pkg.go.dev/github.com/conductorone/baton-verkada) ![main ci](https://github.com/conductorone/baton-verkada/actions/workflows/main.yaml/badge.svg)
 
-`baton-verkada` is a connector for Verkada built using the [Baton SDK](https://github.com/conductorone/baton-sdk). It communicates with the Verkada API to sync data about users and their roles in the workspace.
+`baton-verkada` is a connector for Verkada built using the [Baton SDK](https://github.com/conductorone/baton-sdk). It communicates with the Verkada API to sync data about access users and access groups in your Verkada organization.
 Check out [Baton](https://github.com/conductorone/baton) to learn more about the project in general.
 
 # Getting Started
