@@ -21,5 +21,5 @@ type UserAccess struct {
 type Group struct {
 	GroupID string   `json:"group_id"`
 	Name    string   `json:"name"`
-	UserIDS []string `json:"user_ids,omitempty"`
+	UserIDs []string `json:"user_ids,omitempty"`
 }
