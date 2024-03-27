@@ -72,6 +72,7 @@ Flags:
       --log-format string      The output format for logs: json, console ($BATON_LOG_FORMAT) (default "json")
       --log-level string       The log level: debug, info, warn, error ($BATON_LOG_LEVEL) (default "info")
   -p, --provisioning           This must be set in order for provisioning actions to be enabled. ($BATON_PROVISIONING)
+      --region string          API region. Default is US. In case of EU based organization, pass region as EU. ($BATON_REGION) (default "US")
   -v, --version                version for baton-verkada
 
 Use "baton-verkada [command] --help" for more information about a command.

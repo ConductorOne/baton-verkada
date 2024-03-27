@@ -9,27 +9,34 @@ import (
 	"net/url"
 )
 
-const BaseUrl = "https://api.verkada.com"
+const BaseUrlUS = "https://api.verkada.com"
+const BaseUrlEU = "https://api.eu.verkada.com"
 
 type Client struct {
 	httpClient *http.Client
 	apiKey     string
+	baseURL    string
 }
 
 type RequestBody struct {
 	UserID string `json:"user_id"`
 }
 
-func NewClient(httpClient *http.Client, apiKey string) *Client {
+func NewClient(httpClient *http.Client, apiKey, region string) *Client {
+	baseUrl := BaseUrlUS
+	if region != "US" {
+		baseUrl = BaseUrlEU
+	}
 	return &Client{
 		httpClient: httpClient,
 		apiKey:     apiKey,
+		baseURL:    baseUrl,
 	}
 }
 
 // ListUsers returns a list of all access users.
 func (c *Client) ListUsers(ctx context.Context) ([]User, error) {
-	url, _ := url.JoinPath(BaseUrl, "/access/v1/access_users")
+	url, _ := url.JoinPath(c.baseURL, "/access/v1/access_users")
 
 	var res struct {
 		Users []User `json:"access_members"`
@@ -44,7 +51,7 @@ func (c *Client) ListUsers(ctx context.Context) ([]User, error) {
 
 // GetUserAccessInformation returns user access information object.
 func (c *Client) GetUserAccessInformation(ctx context.Context, userId string) (UserAccess, error) {
-	accessUrl, _ := url.JoinPath(BaseUrl, "/access/v1/access_users/user")
+	accessUrl, _ := url.JoinPath(c.baseURL, "/access/v1/access_users/user")
 	var res UserAccess
 
 	q := url.Values{}
@@ -59,7 +66,7 @@ func (c *Client) GetUserAccessInformation(ctx context.Context, userId string) (U
 
 // ListAccessGroups returns a list of all access groups.
 func (c *Client) ListAccessGroups(ctx context.Context) ([]Group, error) {
-	url, _ := url.JoinPath(BaseUrl, "/access/v1/access_groups")
+	url, _ := url.JoinPath(c.baseURL, "/access/v1/access_groups")
 
 	var res struct {
 		Groups []Group `json:"access_groups"`
@@ -74,7 +81,7 @@ func (c *Client) ListAccessGroups(ctx context.Context) ([]Group, error) {
 
 // AddUserToGroup adds user to access group.
 func (c *Client) AddUserToGroup(ctx context.Context, groupId, userId string) error {
-	groupUrl, _ := url.JoinPath(BaseUrl, "/access/v1/access_groups/group/user")
+	groupUrl, _ := url.JoinPath(c.baseURL, "/access/v1/access_groups/group/user")
 
 	var res struct {
 		GroupID          string   `json:"group_id"`
@@ -108,7 +115,7 @@ func (c *Client) AddUserToGroup(ctx context.Context, groupId, userId string) err
 
 // RemoveUserFromGroup removes user from access group.
 func (c *Client) RemoveUserFromGroup(ctx context.Context, groupId, userId string) error {
-	groupUrl, _ := url.JoinPath(BaseUrl, "/access/v1/access_groups/group/user")
+	groupUrl, _ := url.JoinPath(c.baseURL, "/access/v1/access_groups/group/user")
 
 	q := url.Values{}
 	q.Add("group_id", groupId)
