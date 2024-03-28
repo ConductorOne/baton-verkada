@@ -13,6 +13,7 @@ type config struct {
 	cli.BaseConfig `mapstructure:",squash"` // Puts the base config options in the same place as the connector options
 
 	ApiKey string `mapstructure:"api-key"`
+	Region string `mapstructure:"region"`
 }
 
 // validateConfig is run after the configuration is loaded, and should return an error if it isn't valid.
@@ -27,4 +28,5 @@ func validateConfig(ctx context.Context, cfg *config) error {
 // cmdFlags sets the cmdFlags required for the connector.
 func cmdFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().String("api-key", "", "API key used to authenticate to Verkada API. ($BATON_API_KEY)")
+	cmd.PersistentFlags().String("region", "US", "API region. Default is US. In case of EU based organization, pass region as EU. ($BATON_REGION)")
 }

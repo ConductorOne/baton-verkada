@@ -84,6 +84,7 @@ func (g *groupBuilder) Entitlements(_ context.Context, resource *v2.Resource, _ 
 }
 
 func (g *groupBuilder) Grants(ctx context.Context, resource *v2.Resource, pToken *pagination.Token) ([]*v2.Grant, string, annotations.Annotations, error) {
+	l := ctxzap.Extract(ctx)
 	users, err := g.client.ListUsers(ctx)
 	if err != nil {
 		return nil, "", nil, fmt.Errorf("error getting users: %w", err)
@@ -94,7 +95,12 @@ func (g *groupBuilder) Grants(ctx context.Context, resource *v2.Resource, pToken
 		userCopy := user
 		accessInfo, err := g.client.GetUserAccessInformation(ctx, user.UserID)
 		if err != nil {
-			return nil, "", nil, fmt.Errorf("error getting user %s access info: %w", user.UserID, err)
+			l.Warn(
+				"baton-verkada: error fetching user information, skipping user grant for group membership",
+				zap.String("user_id", user.UserID),
+				zap.String("group_id", resource.Id.Resource),
+			)
+			continue
 		}
 
 		if groupContainsUser(resource.Id.Resource, accessInfo.AccessGroups) {
