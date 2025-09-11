@@ -5,7 +5,6 @@ import (
 
 	v2 "github.com/conductorone/baton-sdk/pb/c1/connector/v2"
 	"github.com/conductorone/baton-sdk/pkg/annotations"
-	"github.com/conductorone/baton-sdk/pkg/helpers"
 	"github.com/conductorone/baton-sdk/pkg/pagination"
 	rs "github.com/conductorone/baton-sdk/pkg/types/resource"
 	"github.com/conductorone/baton-verkada/pkg/verkada"
@@ -22,7 +21,7 @@ func (u *userBuilder) ResourceType(ctx context.Context) *v2.ResourceType {
 
 // Create a new connector resource for a Verkada user.
 func userResource(user *verkada.User) (*v2.Resource, error) {
-	firstname, lastname := helpers.SplitFullName(user.FullName)
+	firstname, lastname := rs.SplitFullName(user.FullName)
 	profile := map[string]interface{}{
 		"first_name":  firstname,
 		"last_name":   lastname,
