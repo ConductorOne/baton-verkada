@@ -13,12 +13,12 @@ var ApiKeyField = field.StringField(
 	field.WithRequired(true),
 	field.WithIsSecret(true),
 )
-var RegionField = field.StringField(
+var RegionField = field.SelectField(
 	"region",
+	[]string{"US", "EU"},
 	field.WithDisplayName("Region"),
 	field.WithDescription("API region. Default is US. In case of EU based organization, pass region as EU."),
 	field.WithDefaultValue("US"),
-	field.WithIsSecret(true),
 )
 
 //go:generate go run ./gen
