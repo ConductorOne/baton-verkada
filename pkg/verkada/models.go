@@ -23,3 +23,7 @@ type Group struct {
 	Name    string   `json:"name"`
 	UserIDs []string `json:"user_ids,omitempty"`
 }
+
+type TokenResponse struct {
+	Token string `json:"token"`
+}

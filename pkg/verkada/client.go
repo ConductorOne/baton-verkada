@@ -7,15 +7,20 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"time"
+
+	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 )
 
 const BaseUrlUS = "https://api.verkada.com"
 const BaseUrlEU = "https://api.eu.verkada.com"
 
 type Client struct {
-	httpClient *http.Client
-	apiKey     string
-	baseURL    string
+	httpClient     *http.Client
+	apiKey         string
+	baseURL        string
+	token          string
+	tokenCreatedAt time.Time
 }
 
 type RequestBody struct {
@@ -28,9 +33,11 @@ func NewClient(httpClient *http.Client, apiKey, region string) *Client {
 		baseUrl = BaseUrlEU
 	}
 	return &Client{
-		httpClient: httpClient,
-		apiKey:     apiKey,
-		baseURL:    baseUrl,
+		httpClient:     httpClient,
+		apiKey:         apiKey,
+		baseURL:        baseUrl,
+		tokenCreatedAt: time.Time{},
+		token:          "",
 	}
 }
 
@@ -138,9 +145,18 @@ func (c *Client) doRequest(ctx context.Context, method, path string, res interfa
 		req.URL.RawQuery = params.Encode()
 	}
 
+	if c.token == "" || time.Since(c.tokenCreatedAt) > time.Minute*25 {
+		tokenResp, err := c.getToken(ctx)
+		if err != nil {
+			return err
+		}
+		c.token = tokenResp.Token
+		c.tokenCreatedAt = time.Now()
+	}
+
 	req.Header.Add("accept", "application/json")
 	req.Header.Add("content-type", "application/json")
-	req.Header.Add("x-api-key", c.apiKey)
+	req.Header.Add("x-verkada-auth", c.token)
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return err
@@ -159,6 +175,43 @@ func (c *Client) doRequest(ctx context.Context, method, path string, res interfa
 	}
 
 	return nil
+}
+
+func (c *Client) getToken(ctx context.Context) (*TokenResponse, error) {
+	l := ctxzap.Extract(ctx)
+
+	l.Info("fetching new token")
+
+	path, err := url.JoinPath(c.baseURL, "/token")
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("accept", "application/json")
+	req.Header.Add("content-type", "application/json")
+	req.Header.Add("x-api-key", c.apiKey)
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed with status: %s", resp.Status)
+	}
+
+	var tokenResp TokenResponse
+	if err := json.NewDecoder(resp.Body).Decode(&tokenResp); err != nil {
+		return nil, err
+	}
+
+	return &tokenResp, nil
 }
 
 func arrayContains(target string, array []string) bool {
