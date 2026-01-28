@@ -12,12 +12,12 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 )
 
-type Connector struct {
+type Verkada struct {
 	client *verkada.Client
 }
 
 // ResourceSyncers returns a ResourceSyncer for each resource type that should be synced from the upstream service.
-func (v *Connector) ResourceSyncers(ctx context.Context) []connectorbuilder.ResourceSyncer {
+func (v *Verkada) ResourceSyncers(ctx context.Context) []connectorbuilder.ResourceSyncer {
 	return []connectorbuilder.ResourceSyncer{
 		newUserBuilder(v.client),
 		newGroupBuilder(v.client),
@@ -25,7 +25,7 @@ func (v *Connector) ResourceSyncers(ctx context.Context) []connectorbuilder.Reso
 }
 
 // Metadata returns metadata about the connector.
-func (v *Connector) Metadata(ctx context.Context) (*v2.ConnectorMetadata, error) {
+func (v *Verkada) Metadata(ctx context.Context) (*v2.ConnectorMetadata, error) {
 	return &v2.ConnectorMetadata{
 		DisplayName: "Verkada connector",
 		Description: "Connector syncing users and groups from Verkada to Baton.",
@@ -34,7 +34,7 @@ func (v *Connector) Metadata(ctx context.Context) (*v2.ConnectorMetadata, error)
 
 // Validate is called to ensure that the connector is properly configured. It should exercise any API credentials
 // to be sure that they are valid.
-func (v *Connector) Validate(ctx context.Context) (annotations.Annotations, error) {
+func (v *Verkada) Validate(ctx context.Context) (annotations.Annotations, error) {
 	_, err := v.client.ListUsers(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to validate API credentials: %w", err)
@@ -43,13 +43,13 @@ func (v *Connector) Validate(ctx context.Context) (annotations.Annotations, erro
 }
 
 // New returns a new instance of the connector.
-func New(ctx context.Context, apiKey, region string) (*Connector, error) {
+func New(ctx context.Context, apiKey, region string) (*Verkada, error) {
 	httpClient, err := uhttp.NewClient(ctx, uhttp.WithLogger(true, ctxzap.Extract(ctx)))
 	if err != nil {
 		return nil, err
 	}
 
-	return &Connector{
+	return &Verkada{
 		client: verkada.NewClient(httpClient, apiKey, region),
 	}, nil
 }
