@@ -28,7 +28,7 @@ func main() {
 		connectorName,
 		getConnector,
 		cfg.Config,
-		connectorrunner.WithDefaultCapabilitiesConnectorBuilder(&connector.Connector{}),
+		connectorrunner.WithDefaultCapabilitiesConnectorBuilder(&connector.Verkada{}),
 	)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
