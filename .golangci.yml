@@ -1,4 +1,7 @@
+# This file is managed by baton-admin. DO NOT EDIT!!!
 version: "2"
+run:
+  modules-download-mode: readonly
 linters:
   default: none
   enable:
@@ -72,6 +75,7 @@ linters:
           arguments:
             - fmt.Printf
             - fmt.Println
+            - fmt.Fprint
             - fmt.Fprintf
             - fmt.Fprintln
             - os.Stderr.Sync
@@ -86,7 +90,7 @@ linters:
               - URL
               - HTTP
               - API
-            - [ ]
+            - []
   exclusions:
     generated: lax
     presets:
@@ -98,6 +102,12 @@ linters:
       - linters:
           - godot
         source: (TODO)
+      - path: (.+)\.go$
+        text: third_party$
+      - path: (.+)\.go$
+        text: builtin$
+      - path: (.+)\.go$
+        text: examples$
     paths:
       - third_party$
       - builtin$
@@ -105,8 +115,6 @@ linters:
 issues:
   max-same-issues: 50
 formatters:
-  enable:
-    - goimports
   exclusions:
     generated: lax
     paths:
