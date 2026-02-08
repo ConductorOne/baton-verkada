@@ -54,6 +54,7 @@ func getConnector(ctx context.Context, cc *cfg.Verkada) (types.ConnectorServer, 
 		ctx,
 		cc.ApiKey,
 		cc.Region,
+		cc.BaseUrl,
 	)
 	if err != nil {
 		l.Error("error creating connector", zap.Error(err))

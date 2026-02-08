@@ -12,8 +12,8 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 )
 
-const BaseUrlUS = "https://api.verkada.com"
-const BaseUrlEU = "https://api.eu.verkada.com"
+const DefaultBaseURLUS = "https://api.verkada.com"
+const DefaultBaseURLEU = "https://api.eu.verkada.com"
 
 type Client struct {
 	httpClient     *http.Client
@@ -27,15 +27,17 @@ type RequestBody struct {
 	UserID string `json:"user_id"`
 }
 
-func NewClient(httpClient *http.Client, apiKey, region string) *Client {
-	baseUrl := BaseUrlUS
-	if region != "US" {
-		baseUrl = BaseUrlEU
+func NewClient(httpClient *http.Client, apiKey, region, baseURL string) *Client {
+	if baseURL == "" {
+		baseURL = DefaultBaseURLUS
+		if region != "US" {
+			baseURL = DefaultBaseURLEU
+		}
 	}
 	return &Client{
 		httpClient:     httpClient,
 		apiKey:         apiKey,
-		baseURL:        baseUrl,
+		baseURL:        baseURL,
 		tokenCreatedAt: time.Time{},
 		token:          "",
 	}

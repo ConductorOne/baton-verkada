@@ -43,13 +43,13 @@ func (v *Verkada) Validate(ctx context.Context) (annotations.Annotations, error)
 }
 
 // New returns a new instance of the connector.
-func New(ctx context.Context, apiKey, region string) (*Verkada, error) {
+func New(ctx context.Context, apiKey, region, baseURL string) (*Verkada, error) {
 	httpClient, err := uhttp.NewClient(ctx, uhttp.WithLogger(true, ctxzap.Extract(ctx)))
 	if err != nil {
 		return nil, err
 	}
 
 	return &Verkada{
-		client: verkada.NewClient(httpClient, apiKey, region),
+		client: verkada.NewClient(httpClient, apiKey, region, baseURL),
 	}, nil
 }
