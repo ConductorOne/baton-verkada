@@ -1,4 +1,4 @@
-# `baton-verkada` [![Go Reference](https://pkg.go.dev/badge/github.com/conductorone/baton-verkada.svg)](https://pkg.go.dev/github.com/conductorone/baton-verkada) ![main ci](https://github.com/conductorone/baton-verkada/actions/workflows/main.yaml/badge.svg)
+# `baton-verkada` [![Go Reference](https://pkg.go.dev/badge/github.com/conductorone/baton-verkada.svg)](https://pkg.go.dev/github.com/conductorone/baton-verkada) ![verify](https://github.com/conductorone/baton-verkada/actions/workflows/verify.yaml/badge.svg)
 
 `baton-verkada` is a connector for Verkada built using the [Baton SDK](https://github.com/conductorone/baton-sdk). It communicates with the Verkada API to sync data about access users and access groups in your Verkada organization.
 Check out [Baton](https://github.com/conductorone/baton) to learn more about the project in general.
@@ -9,7 +9,7 @@ Check out [Baton](https://github.com/conductorone/baton) to learn more about the
 
 - Access to the Verkada Command platform.
 - API key. Only Organization Admins can create API keys. To create a new API key, go to Organization settings -> Verkada API -> New API Key
-- Set the API key permissions to 'read only' if your want to just fetch the data about users and access. If you want provissioning support (adding and removing users from access groups) set the permissions to 'read/write'. 
+- Set the API key permissions to 'read only' if your want to just fetch the data about users and access. If you want provissioning support (adding and removing users from access groups) set the permissions to 'read/write'.
 
 ## brew
 
