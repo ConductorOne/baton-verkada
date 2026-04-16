@@ -84,10 +84,6 @@ func (g *groupBuilder) Entitlements(_ context.Context, resource *v2.Resource, _ 
 }
 
 func (g *groupBuilder) Grants(ctx context.Context, resource *v2.Resource, pToken *pagination.Token) ([]*v2.Grant, string, annotations.Annotations, error) {
-	l := ctxzap.Extract(ctx)
-
-	// Fetch the group details to get member user IDs directly,
-	// instead of querying each user's access info individually (N+1 problem).
 	group, err := g.client.GetAccessGroup(ctx, resource.Id.Resource)
 	if err != nil {
 		return nil, "", nil, fmt.Errorf("baton-verkada: error getting access group %s: %w", resource.Id.Resource, err)
@@ -97,37 +93,14 @@ func (g *groupBuilder) Grants(ctx context.Context, resource *v2.Resource, pToken
 		return nil, "", nil, nil
 	}
 
-	// List all users and build a lookup map by user ID.
-	users, err := g.client.ListUsers(ctx)
-	if err != nil {
-		return nil, "", nil, fmt.Errorf("baton-verkada: error getting users: %w", err)
-	}
-
-	userMap := make(map[string]verkada.User, len(users))
-	for _, user := range users {
-		userMap[user.UserID] = user
-	}
-
-	var rv []*v2.Grant
-	for _, memberID := range group.UserIDs {
-		user, ok := userMap[memberID]
-		if !ok {
-			l.Warn(
-				"baton-verkada: group member not found in users list, skipping grant",
-				zap.String("user_id", memberID),
-				zap.String("group_id", resource.Id.Resource),
-			)
-			continue
-		}
-
-		ur, err := userResource(&user)
+	rv := make([]*v2.Grant, 0, len(group.UserIDs))
+	for _, userID := range group.UserIDs {
+		rID, err := rs.NewResourceID(userResourceType, userID)
 		if err != nil {
-			return nil, "", nil, fmt.Errorf("baton-verkada: error creating user resource for group %s: %w", resource.Id.Resource, err)
+			return nil, "", nil, fmt.Errorf("baton-verkada: error creating user resource ID for group %s: %w", resource.Id.Resource, err)
 		}
-		gr := grant.NewGrant(resource, memberRole, ur.Id)
-		rv = append(rv, gr)
+		rv = append(rv, grant.NewGrant(resource, memberRole, rID))
 	}
-
 	return rv, "", nil, nil
 }
 
@@ -179,4 +152,3 @@ func newGroupBuilder(client *verkada.Client) *groupBuilder {
 		client:       client,
 	}
 }
-
