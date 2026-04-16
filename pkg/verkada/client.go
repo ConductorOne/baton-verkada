@@ -71,6 +71,21 @@ func (c *Client) GetUserAccessInformation(ctx context.Context, userId string) (U
 	return res, nil
 }
 
+// GetAccessGroup returns a single access group by ID, including its member user IDs.
+func (c *Client) GetAccessGroup(ctx context.Context, groupId string) (Group, error) {
+	groupUrl, _ := url.JoinPath(c.baseURL, "/access/v1/access_groups/group")
+	var res Group
+
+	q := url.Values{}
+	q.Add("group_id", groupId)
+
+	if err := c.doRequest(ctx, http.MethodGet, groupUrl, &res, q, nil); err != nil {
+		return Group{}, err
+	}
+
+	return res, nil
+}
+
 // ListAccessGroups returns a list of all access groups.
 func (c *Client) ListAccessGroups(ctx context.Context) ([]Group, error) {
 	url, _ := url.JoinPath(c.baseURL, "/access/v1/access_groups")
