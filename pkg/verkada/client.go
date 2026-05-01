@@ -159,7 +159,7 @@ func (c *Client) doRequest(ctx context.Context, method, path string, res interfa
 	req.Header.Add("accept", "application/json")
 	req.Header.Add("content-type", "application/json")
 	req.Header.Add("x-verkada-auth", c.token)
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.httpClient.Do(req) //nolint:gosec,nolintlint // G704: URL constructed from trusted config
 	if err != nil {
 		return err
 	}
@@ -197,7 +197,7 @@ func (c *Client) getToken(ctx context.Context) (*TokenResponse, error) {
 	req.Header.Add("accept", "application/json")
 	req.Header.Add("content-type", "application/json")
 	req.Header.Add("x-api-key", c.apiKey)
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.httpClient.Do(req) //nolint:gosec,nolintlint // G704: URL constructed from trusted config
 	if err != nil {
 		return nil, err
 	}
