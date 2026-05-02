@@ -21,11 +21,19 @@ var RegionField = field.SelectField(
 	field.WithDefaultValue("US"),
 )
 
+var BaseURLField = field.StringField(
+	"base-url",
+	field.WithDescription("Override the Verkada API URL (for testing)"),
+	field.WithHidden(true),
+	field.WithExportTarget(field.ExportTargetCLIOnly),
+)
+
 //go:generate go run ./gen
 var Config = field.NewConfiguration(
 	[]field.SchemaField{
 		ApiKeyField,
 		RegionField,
+		BaseURLField,
 	},
 )
 

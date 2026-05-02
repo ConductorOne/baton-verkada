@@ -12,8 +12,8 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 )
 
-const BaseUrlUS = "https://api.verkada.com"
-const BaseUrlEU = "https://api.eu.verkada.com"
+const DefaultBaseURLUS = "https://api.verkada.com"
+const DefaultBaseURLEU = "https://api.eu.verkada.com"
 
 type Client struct {
 	httpClient     *http.Client
@@ -27,15 +27,17 @@ type RequestBody struct {
 	UserID string `json:"user_id"`
 }
 
-func NewClient(httpClient *http.Client, apiKey, region string) *Client {
-	baseUrl := BaseUrlUS
-	if region != "US" {
-		baseUrl = BaseUrlEU
+func NewClient(httpClient *http.Client, apiKey, region, baseURL string) *Client {
+	if baseURL == "" {
+		baseURL = DefaultBaseURLUS
+		if region != "US" {
+			baseURL = DefaultBaseURLEU
+		}
 	}
 	return &Client{
 		httpClient:     httpClient,
 		apiKey:         apiKey,
-		baseURL:        baseUrl,
+		baseURL:        baseURL,
 		tokenCreatedAt: time.Time{},
 		token:          "",
 	}
@@ -172,7 +174,7 @@ func (c *Client) doRequest(ctx context.Context, method, path string, res interfa
 	req.Header.Add("accept", "application/json")
 	req.Header.Add("content-type", "application/json")
 	req.Header.Add("x-verkada-auth", c.token)
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.httpClient.Do(req) //nolint:gosec,nolintlint // G704: URL constructed from trusted config
 	if err != nil {
 		return err
 	}
@@ -210,7 +212,7 @@ func (c *Client) getToken(ctx context.Context) (*TokenResponse, error) {
 	req.Header.Add("accept", "application/json")
 	req.Header.Add("content-type", "application/json")
 	req.Header.Add("x-api-key", c.apiKey)
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.httpClient.Do(req) //nolint:gosec,nolintlint // G704: URL constructed from trusted config
 	if err != nil {
 		return nil, err
 	}

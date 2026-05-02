@@ -6,6 +6,7 @@ import "reflect"
 type Verkada struct {
 	ApiKey string `mapstructure:"api-key"`
 	Region string `mapstructure:"region"`
+	BaseUrl string `mapstructure:"base-url"`
 }
 
 func (c *Verkada) findFieldByTag(tagValue string) (any, bool) {
