@@ -31,9 +31,7 @@ func userResource(user *verkada.User) (*v2.Resource, error) {
 	}
 
 	userTraitOptions := []rs.UserTraitOption{
-		rs.WithUserProfile(profile),
 		rs.WithEmail(user.Email, true),
-		rs.WithStatus(v2.UserTrait_Status_STATUS_ENABLED),
 	}
 
 	ret, err := rs.NewUserResource(
@@ -41,6 +39,8 @@ func userResource(user *verkada.User) (*v2.Resource, error) {
 		userResourceType,
 		user.UserID,
 		userTraitOptions,
+		rs.WithResourceProfile(profile),
+		rs.WithResourceStatus(v2.Status_RESOURCE_STATUS_ENABLED, ""),
 	)
 	if err != nil {
 		return nil, err

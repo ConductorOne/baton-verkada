@@ -33,15 +33,14 @@ func groupResource(group *verkada.Group) (*v2.Resource, error) {
 		"group_id":   group.GroupID,
 	}
 
-	groupTraitOptions := []rs.GroupTraitOption{
-		rs.WithGroupProfile(profile),
-	}
+	groupTraitOptions := []rs.GroupTraitOption{}
 
 	ret, err := rs.NewGroupResource(
 		group.Name,
 		groupResourceType,
 		group.GroupID,
 		groupTraitOptions,
+		rs.WithResourceProfile(profile),
 	)
 	if err != nil {
 		return nil, err
