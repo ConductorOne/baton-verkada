@@ -9,6 +9,7 @@ Check out [Baton](https://github.com/conductorone/baton) to learn more about the
 
 - Access to the Verkada Command platform.
 - API key. Only Organization Admins can create API keys. To create a new API key, go to Organization settings -> Verkada API -> New API Key
+- When creating the API key, under endpoint access, enable the **Access Control** endpoint - this connector only calls `/access/v1/*` endpoints and does not need access to Core, Cameras, Alarms, Video, or any other endpoint category.
 - Set the API key permissions to 'read only' if your want to just fetch the data about users and access. If you want provissioning support (adding and removing users from access groups) set the permissions to 'read/write'.
 
 ## brew
