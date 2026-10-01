@@ -1,0 +1,305 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Verkada Access API (baton-verkada connector surface)",
+    "description": "Describes only the Verkada API endpoints called by the baton-verkada connector (pkg/verkada/client.go). This is not the full Verkada API -- see https://apidocs.verkada.com for the complete reference.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://api.verkada.com",
+      "description": "US region (default). Selected when the connector's `region` config field is \"US\" or unset."
+    },
+    {
+      "url": "https://api.eu.verkada.com",
+      "description": "EU region. Selected when the connector's `region` config field is \"EU\"."
+    }
+  ],
+  "security": [
+    { "VerkadaAuthToken": [] }
+  ],
+  "paths": {
+    "/token": {
+      "post": {
+        "operationId": "getToken",
+        "summary": "Exchange an API key for a short-lived API token",
+        "description": "Called internally by the connector's doRequest helper before any authenticated request, whenever no token is cached or the cached token is older than 25 minutes (pkg/verkada/client.go:165, getToken at client.go:197). The vendor-issued token is valid for 30 minutes; the connector refreshes early to avoid using an expired one.",
+        "security": [
+          { "VerkadaApiKey": [] }
+        ],
+        "responses": {
+          "200": {
+            "description": "A new API token.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TokenResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/access/v1/access_users": {
+      "get": {
+        "operationId": "listAccessUsers",
+        "summary": "List all access users",
+        "description": "Called by Client.ListUsers (pkg/verkada/client.go:47), used both for Verkada.Validate (connector.go:38) and userBuilder.List (pkg/connector/users.go:55). No pagination is applied by the connector -- the full list is read in a single call.",
+        "responses": {
+          "200": {
+            "description": "List of access users.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "access_members": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/User" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/access/v1/access_users/user": {
+      "get": {
+        "operationId": "getUserAccessInformation",
+        "summary": "Get a single user's access information",
+        "description": "Implemented by Client.GetUserAccessInformation (pkg/verkada/client.go:62). Defined on the client but not currently invoked by any resource syncer or by Validate -- kept in scope because it is a request site in client.go. The vendor API also accepts external_id, email, and employee_id as alternate lookup keys; the connector only ever supplies user_id.",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": true,
+            "description": "Verkada-defined user identifier. The only lookup key this connector sends.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The user's access information.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/UserAccess" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/access/v1/access_groups": {
+      "get": {
+        "operationId": "listAccessGroups",
+        "summary": "List all access groups",
+        "description": "Called by Client.ListAccessGroups (pkg/verkada/client.go:92), used by groupBuilder.List (pkg/connector/groups.go:54). No pagination is applied by the connector. Per vendor docs, each item in this list response carries only group_id and name -- user_ids is not populated here (it is only present on the single-group GET).",
+        "responses": {
+          "200": {
+            "description": "List of access groups.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "access_groups": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Group" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/access/v1/access_groups/group": {
+      "get": {
+        "operationId": "getAccessGroup",
+        "summary": "Get a single access group, including its member user IDs",
+        "description": "Called by Client.GetAccessGroup (pkg/verkada/client.go:77), used by groupBuilder.Grants (pkg/connector/groups.go:86) to enumerate group membership.",
+        "parameters": [
+          {
+            "name": "group_id",
+            "in": "query",
+            "required": true,
+            "description": "Verkada-defined access group identifier.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The access group, including member user IDs.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Group" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/access/v1/access_groups/group/user": {
+      "put": {
+        "operationId": "addUserToGroup",
+        "summary": "Add a user to an access group",
+        "description": "Called by Client.AddUserToGroup (pkg/verkada/client.go:107), used by groupBuilder.Grant (pkg/connector/groups.go:118) to provision group membership. The vendor API accepts either user_id or external_id in the request body; the connector always sends user_id. The connector treats the user's ID appearing in `unsuccessful_adds` as a failure (pkg/verkada/client.go:133).",
+        "parameters": [
+          {
+            "name": "group_id",
+            "in": "query",
+            "required": true,
+            "description": "Verkada-defined access group identifier.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AddUserToGroupRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Result of the add-user operation.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AddUserToGroupResponse" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "removeUserFromGroup",
+        "summary": "Remove a user from an access group",
+        "description": "Called by Client.RemoveUserFromGroup (pkg/verkada/client.go:141), used by groupBuilder.Revoke (pkg/connector/groups.go:140) to deprovision group membership. The connector does not decode a response body for DELETE requests (pkg/verkada/client.go:188) -- it only checks the HTTP status code.",
+        "parameters": [
+          {
+            "name": "group_id",
+            "in": "query",
+            "required": true,
+            "description": "Verkada-defined access group identifier.",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": true,
+            "description": "Verkada-defined user identifier. The vendor API also accepts external_id as an alternate; the connector always sends user_id.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User removed from the group. No response body is parsed by the connector."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "VerkadaApiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key",
+        "description": "Top-level, long-lived API key (connector config field `api-key` / BATON_API_KEY). Used only to call POST /token."
+      },
+      "VerkadaAuthToken": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-verkada-auth",
+        "description": "Short-lived API token obtained from POST /token (pkg/verkada/client.go:197). Sent on every other request (pkg/verkada/client.go:176). Cached in-process and refreshed after 25 minutes."
+      }
+    },
+    "schemas": {
+      "TokenResponse": {
+        "type": "object",
+        "description": "pkg/verkada/models.go:27",
+        "properties": {
+          "token": { "type": "string" }
+        }
+      },
+      "User": {
+        "type": "object",
+        "description": "Access user. Fields reflect only what pkg/verkada/models.go:3 (User struct) declares -- the vendor response also includes external_id, company_name, department, department_id, employee_title, is_visitor, has_profile_photo, and profile_photo_last_updated, none of which this connector reads.",
+        "properties": {
+          "email": { "type": "string" },
+          "employee_id": { "type": "string" },
+          "full_name": { "type": "string" },
+          "user_id": { "type": "string" }
+        }
+      },
+      "Group": {
+        "type": "object",
+        "description": "Access group. pkg/verkada/models.go:21. user_ids is only populated by GET /access/v1/access_groups/group; GET /access/v1/access_groups omits it.",
+        "properties": {
+          "group_id": { "type": "string" },
+          "name": { "type": "string" },
+          "user_ids": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      },
+      "UserAccess": {
+        "type": "object",
+        "description": "pkg/verkada/models.go:10. Fields reflect only what the UserAccess struct declares.",
+        "properties": {
+          "access_groups": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Group" }
+          },
+          "ble_unlock": { "type": "boolean" },
+          "end_date": {
+            "type": "string",
+            "description": "Unix timestamp as a string. Vendor docs mark this nullable; the Go field is a non-pointer string, so a JSON null is silently decoded as the zero value (\"\") rather than surfaced -- unproven whether the connector ever observes this in practice."
+          },
+          "entry_code": { "type": "string" },
+          "external_id": {
+            "type": "string",
+            "description": "Vendor docs type this as a string, but the Go field is declared as interface{} (pkg/verkada/models.go:15), accepting any JSON type.",
+            "nullable": true
+          },
+          "remote_unlock": { "type": "boolean" },
+          "start_date": {
+            "type": "string",
+            "description": "Vendor docs type this as a nullable string (Unix timestamp); the Go field is declared as interface{} (pkg/verkada/models.go:17), accepting any JSON type including null.",
+            "nullable": true
+          },
+          "user_id": { "type": "string" }
+        }
+      },
+      "AddUserToGroupRequest": {
+        "type": "object",
+        "description": "pkg/verkada/client.go:26 (RequestBody) / client.go:120. Vendor API accepts user_id or external_id (exactly one); the connector only ever populates user_id.",
+        "properties": {
+          "user_id": { "type": "string" }
+        },
+        "required": ["user_id"]
+      },
+      "AddUserToGroupResponse": {
+        "type": "object",
+        "description": "Anonymous response struct at pkg/verkada/client.go:110-115.",
+        "properties": {
+          "group_id": { "type": "string" },
+          "name": { "type": "string" },
+          "successful_adds": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "unsuccessful_adds": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "If the target user_id appears here, Client.AddUserToGroup returns an error (pkg/verkada/client.go:133)."
+          }
+        }
+      }
+    }
+  }
+}
